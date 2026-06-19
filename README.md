@@ -2,7 +2,7 @@
 
 > 날아다니는 오리를 잡으세요! 3번 놓치면 강아지가 놀려줍니다 🐕
 
-**▶ 지금 바로 플레이** → [https://mindweaver74.github.io/duckhunt-reborn](https://mindweaver74.github.io/duckhunt-reborn)
+**▶ 지금 바로 플레이** → [[https://mindweaver74.github.io/duckhunt-reborn](https://mindweaver74.github.io/Duck-hunt/)]
 
 ---
 
