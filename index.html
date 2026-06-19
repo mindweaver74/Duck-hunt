@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>덕헌트 REBORN</title>
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8357338943233901"
+     crossorigin="anonymous"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;font-family:-apple-system,Arial,sans-serif;}
+#c{display:block;width:100%;height:100%;cursor:crosshair;position:fixed;top:0;left:0;z-index:1;}
+
+/* HUD */
+#hud{position:fixed;top:0;left:0;width:100%;z-index:10;pointer-events:none;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:max(12px,env(safe-area-inset-top)) 16px 0;}
+.hud-box{text-align:center;}
+.hud-lbl{font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-shadow:0 1px 4px rgba(0,0,0,0.8);}
+.hud-val{font-size:24px;font-weight:900;color:#fff;text-shadow:0 0 12px rgba(0,0,0,0.8),0 2px 4px rgba(0,0,0,0.9);}
+
+/* 타이머 바 */
+#timer-bar-wrap{position:fixed;top:max(56px,env(safe-area-inset-top)+44px);left:0;width:100%;height:6px;background:rgba(0,0,0,0.3);z-index:10;pointer-events:none;}
+#timer-bar{height:100%;background:linear-gradient(90deg,#0f0,#ff0,#f00);transition:width .1s linear;width:100%;}
+
+/* 콤보 */
+#combo-disp{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:36px;font-weight:900;color:#ff0;
+  text-shadow:0 0 20px #ff0,0 2px 6px rgba(0,0,0,0.9);
+  pointer-events:none;z-only:20;opacity:0;white-space:nowrap;z-index:20;}
+
+/* 강아지 말풍선 */
+#dog-msg{
+  position:fixed;
+  top:max(80px,env(safe-area-inset-top)+70px);
+  left:50%;
+  transform:translateX(-50%);
+  background:#fff;
+  border-radius:20px;
+  padding:10px 20px;
+  font-size:15px;
+  font-weight:800;
+  color:#222;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+  pointer-events:none;
+  z-index:9999;
+  opacity:0;
+  transition:opacity .25s;
+  white-space:nowrap;
+  max-width:80%;
+  text-align:center;
+}
+#dog-msg::after{
+  content:'';
+  position:absolute;
+  top:-10px;left:50%;
+  transform:translateX(-50%);
+  border:10px solid transparent;
+  border-bottom-color:#fff;
+  border-top:none;
+}
+
+/* 조준선 */
+#crosshair{position:fixed;pointer-events:none;z-index:15;display:none;}
+
+/* 오버레이 */
+#overlay{position:fixed;top:0;left:0;width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:100;text-align:center;padding:24px;
+  padding-top:max(24px,env(safe-area-inset-top));
+  padding-bottom:max(24px,env(safe-area-inset-bottom));}
+.ov-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,20,0,0.88);}
+.ov-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;}
+.ov-title{font-size:48px;font-weight:900;letter-spacing:-2px;
+  background:linear-gradient(135deg,#0f0,#ff0,#f80);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.ov-sub{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:20px;line-height:1.7;}
+.ov-score{font-size:80px;font-weight:900;color:#fff;line-height:1;display:none;}
+.ov-score-lbl{font-size:12px;color:rgba(255,255,255,0.4);display:none;margin-top:2px;}
+.ov-best{font-size:14px;color:#ffd700;display:none;margin-top:6px;margin-bottom:16px;}
+.ov-stats{display:none;gap:10px;margin-bottom:20px;width:100%;max-width:300px;}
+.ov-stat{flex:1;background:rgba(255,255,255,0.08);border-radius:12px;padding:10px 6px;text-align:center;}
+.ov-stat-val{font-size:22px;font-weight:700;}
+.ov-stat-lbl{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;}
+#play-btn{padding:14px 48px;border-radius:50px;border:none;font-size:17px;font-weight:700;
+  cursor:pointer;background:linear-gradient(135deg,#0f0,#0a0);color:#fff;
+  -webkit-appearance:none;min-width:190px;position:relative;z-index:110;
+  box-shadow:0 4px 20px rgba(0,200,0,0.4);}
+.ov-tip{font-size:11px;color:rgba(255,255,255,0.25);margin-top:12px;line-height:1.8;}
+
+/* 광고 영역 */
+.ad-wrap{width:100%;max-width:320px;min-height:100px;margin:12px auto;
+  background:rgba(255,255,255,0.03);border-radius:8px;overflow:hidden;display:none;}
+
+/* footer */
+#footer{position:fixed;bottom:0;left:0;width:100%;
+  padding:6px 16px max(10px,env(safe-area-inset-bottom));
+  display:flex;justify-content:space-between;align-items:center;
+  pointer-events:none;z-index:5;}
+#footer a{font-size:11px;color:rgba(255,255,255,0.3);text-decoration:none;pointer-events:all;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud">
+  <div class="hud-box"><div class="hud-lbl">SCORE</div><div class="hud-val" id="score-val">0</div></div>
+  <div class="hud-box"><div class="hud-lbl">WAVE</div><div class="hud-val" id="wave-val">1</div></div>
+  <div class="hud-box"><div class="hud-lbl">MISS</div><div class="hud-val" id="miss-val">0/3</div></div>
+</div>
+<div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+<div id="combo-disp"></div>
+<div id="dog-msg">ㅋㅋㅋ 못 잡았네~</div>
+<div id="crosshair">🎯</div>
+
+<div id="footer">
+  <a href="https://mindweaver74.github.io/Jutopia">🎮 Jutopia</a>
+  <a href="https://mindweaver74.github.io/Jutopia/privacy.html">개인정보처리방침</a>
+</div>
+
+<div id="overlay">
+  <div class="ov-bg"></div>
+  <div class="ov-content">
+    <div class="ov-title">🦆 덕헌트 REBORN</div>
+    <div class="ov-sub">날아다니는 오리를 잡으세요!<br>3번 놓치면 게임 오버 🐕</div>
+    <div class="ov-score" id="ov-score"></div>
+    <div class="ov-score-lbl" id="ov-score-lbl">점수</div>
+    <div class="ov-best" id="ov-best"></div>
+    <div class="ov-stats" id="ov-stats">
+      <div class="ov-stat"><div class="ov-stat-val" id="st-hit">0</div><div class="ov-stat-lbl">잡은 오리</div></div>
+      <div class="ov-stat"><div class="ov-stat-val" id="st-combo">0</div><div class="ov-stat-lbl">최대 콤보</div></div>
+      <div class="ov-stat"><div class="ov-stat-val" id="st-wave">1</div><div class="ov-stat-lbl">도달 웨이브</div></div>
+    </div>
+    <!-- 광고 영역 (승인 후 활성화) -->
+    <div class="ad-wrap" id="ad-result"></div>
+    <button id="play-btn">시작하기</button>
+    <div class="ov-tip">터치/클릭으로 오리를 잡으세요<br>콤보로 점수 배율 상승!</div>
+  </div>
+</div>
+
+<script>
+var canvas=document.getElementById('c');
+var ctx=canvas.getContext('2d');
+var W,H;
+
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+window.addEventListener('resize',resize);resize();
+
+var bestScore=+(localStorage.getItem('dhBest')||0);
+
+// ── 상수 ──
+var WAVE_TIME   = 30;   // 웨이브당 시간(초)
+var BASE_DUCKS  = 3;    // 초기 오리 수
+var MAX_MISS    = 3;    // 최대 실수
+var DUCK_W      = 60;
+var DUCK_H      = 44;
+
+// ── 상태 ──
+var score=0,wave=1,miss=0,combo=0,maxCombo=0,totalHit=0;
+var ducks=[],particles=[],shots=[];
+var gameActive=false;
+var timeLeft=WAVE_TIME,lastTime=0,rafId=0;
+var dogVisible=false,dogTimer=0;
+var bgScrollX=0;
+
+// ── 배경 그리기 (자연 배경) ──
+function drawBg(){
+  // 하늘
+  var skyGrad=ctx.createLinearGradient(0,0,0,H*0.65);
+  skyGrad.addColorStop(0,'#87CEEB');
+  skyGrad.addColorStop(1,'#c8e8f0');
+  ctx.fillStyle=skyGrad;ctx.fillRect(0,0,W,H*0.65);
+
+  // 구름들
+  drawCloud(W*0.15,H*0.08,60);
+  drawCloud(W*0.5,H*0.05,80);
+  drawCloud(W*0.8,H*0.1,50);
+
+  // 풀밭
+  var grassGrad=ctx.createLinearGradient(0,H*0.62,0,H);
+  grassGrad.addColorStop(0,'#4a8c3f');
+  grassGrad.addColorStop(0.3,'#3a7c2f');
+  grassGrad.addColorStop(1,'#2a5c1f');
+  ctx.fillStyle=grassGrad;
+  ctx.fillRect(0,H*0.62,W,H*0.38);
+
+  // 풀 경계선 물결
+  ctx.fillStyle='#5aac4f';
+  ctx.beginPath();
+  ctx.moveTo(0,H*0.62);
+  for(var x=0;x<=W;x+=20){
+    ctx.lineTo(x,H*0.62-Math.sin(x*0.05+bgScrollX)*6);
+  }
+  ctx.lineTo(W,H*0.62);ctx.lineTo(W,H*0.65);ctx.lineTo(0,H*0.65);
+  ctx.fill();
+
+  // 나무
+  drawTree(W*0.05,H*0.62);
+  drawTree(W*0.92,H*0.62);
+
+  // 강아지 (하단)
+  drawDog(W*0.5,H*0.72);
+
+  bgScrollX+=0.02;
+}
+
+function drawCloud(x,y,size){
+  ctx.fillStyle='rgba(255,255,255,0.85)';
+  ctx.beginPath();ctx.arc(x,y,size*0.5,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x+size*0.4,y+size*0.05,size*0.38,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x-size*0.35,y+size*0.08,size*0.32,0,Math.PI*2);ctx.fill();
+}
+
+function drawTree(x,y){
+  // 나무 기둥
+  ctx.fillStyle='#6b3a2a';
+  ctx.fillRect(x-8,y-50,16,50);
+  // 나뭇잎
+  ctx.fillStyle='#2d7a1f';
+  ctx.beginPath();ctx.arc(x,y-70,40,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#3a9a2a';
+  ctx.beginPath();ctx.arc(x-12,y-55,28,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x+14,y-58,24,0,Math.PI*2);ctx.fill();
+}
+
+// 강아지
+var dogAnim=0;
+var dogLaughing=false;
+function drawDog(x,y){
+  dogAnim+=0.08;
+  ctx.save();
+  ctx.translate(x,y);
+  if(dogLaughing){ctx.rotate(Math.sin(dogAnim*3)*0.1);}
+
+  // 몸통
+  ctx.fillStyle='#c8a060';
+  ctx.beginPath();ctx.ellipse(0,0,28,20,0,0,Math.PI*2);ctx.fill();
+  // 머리
+  ctx.beginPath();ctx.arc(30,-8,18,0,Math.PI*2);ctx.fill();
+  // 귀
+  ctx.fillStyle='#a07840';
+  ctx.beginPath();ctx.ellipse(22,-20,8,14,-0.3,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(38,-20,8,14,0.3,0,Math.PI*2);ctx.fill();
+  // 눈
+  ctx.fillStyle='#222';
+  ctx.beginPath();ctx.arc(26,-10,3,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(36,-10,3,0,Math.PI*2);ctx.fill();
+  // 웃음/눈물
+  if(dogLaughing){
+    ctx.strokeStyle='#222';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(31,-6,6,0,Math.PI);ctx.stroke();
+    // 웃음 눈
+    ctx.beginPath();ctx.arc(26,-10,3,Math.PI,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(36,-10,3,Math.PI,Math.PI*2);ctx.stroke();
+  } else {
+    ctx.fillStyle='#444';
+    ctx.beginPath();ctx.arc(31,-6,3,0,Math.PI*2);ctx.fill();
+  }
+  // 코
+  ctx.fillStyle='#333';
+  ctx.beginPath();ctx.ellipse(44,-8,5,3,0,0,Math.PI*2);ctx.fill();
+  // 꼬리
+  var tailWag=Math.sin(dogAnim*2)*0.4;
+  ctx.strokeStyle='#c8a060';ctx.lineWidth=6;ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(-28,0);
+  ctx.quadraticCurveTo(-45,-15+tailWag*20,-40,-30+tailWag*10);
+  ctx.stroke();
+  // 다리
+  ctx.fillStyle='#b89050';
+  [-14,-2].forEach(function(ox){
+    var legY=Math.sin(dogAnim+ox)*5;
+    ctx.fillRect(ox-4,12,8,16+legY);
+    ctx.fillRect(ox+16-4,12,8,16-legY);
+  });
+  ctx.restore();
+}
+
+// ── 오리 생성 ──
+function makeDuck(){
+  var fromLeft=Math.random()<0.5;
+  var spd=(1.2+wave*0.2+Math.random()*0.8)*(fromLeft?1:-1);
+  var y=H*0.1+Math.random()*H*0.42;
+  return{
+    x:fromLeft?-DUCK_W:W+DUCK_W,
+    y:y, vx:spd,
+    vy:(Math.random()-0.5)*1.2,
+    phase:Math.random()*Math.PI*2,
+    wingPhase:0,
+    alive:true, hit:false,
+    hitTimer:0,
+    color:pickDuckColor(),
+    size:0.9+Math.random()*0.3,
+    score:100+wave*20,
+  };
+}
+
+function pickDuckColor(){
+  var colors=[
+    {body:'#4a7a2a',head:'#2a5a10',bill:'#f8a020'},  // 청둥오리
+    {body:'#c8c8c8',head:'#888',bill:'#f8a020'},       // 흰오리
+    {body:'#c84820',head:'#8a2810',bill:'#f8d020'},    // 빨간오리
+    {body:'#2060c8',head:'#103888',bill:'#f8c820'},    // 파란오리
+  ];
+  return colors[Math.floor(Math.random()*colors.length)];
+}
+
+// ── 오리 그리기 ──
+function drawDuck(d){
+  ctx.save();
+  ctx.translate(d.x,d.y);
+  if(d.vx<0)ctx.scale(-1,1);
+  var s=d.size;
+  var wy=Math.sin(d.wingPhase)*8*s;
+
+  if(d.hit){
+    ctx.globalAlpha=Math.max(0,d.hitTimer/30);
+    ctx.rotate(d.hitTimer*0.15);
+  }
+
+  // 날개 위
+  ctx.fillStyle=d.color.body;
+  ctx.beginPath();
+  ctx.ellipse(-8*s,-14*s-wy,22*s,10*s,-0.3,0,Math.PI*2);
+  ctx.fill();
+
+  // 몸통
+  ctx.fillStyle=d.color.body;
+  ctx.beginPath();ctx.ellipse(0,0,26*s,16*s,0,0,Math.PI*2);ctx.fill();
+
+  // 날개 아래
+  ctx.fillStyle=d.color.head;
+  ctx.beginPath();
+  ctx.ellipse(-6*s,6*s+wy*0.5,18*s,8*s,0.2,0,Math.PI*2);
+  ctx.fill();
+
+  // 머리
+  ctx.fillStyle=d.color.head;
+  ctx.beginPath();ctx.arc(22*s,-8*s,12*s,0,Math.PI*2);ctx.fill();
+
+  // 부리
+  ctx.fillStyle=d.color.bill;
+  ctx.beginPath();
+  ctx.moveTo(32*s,-8*s);ctx.lineTo(44*s,-10*s);ctx.lineTo(44*s,-5*s);ctx.lineTo(32*s,-6*s);
+  ctx.fill();
+
+  // 눈
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(26*s,-10*s,4*s,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#111';ctx.beginPath();ctx.arc(27*s,-10*s,2*s,0,Math.PI*2);ctx.fill();
+
+  // 꼬리
+  ctx.fillStyle=d.color.body;
+  ctx.beginPath();
+  ctx.moveTo(-26*s,0);ctx.lineTo(-40*s,-10*s);ctx.lineTo(-38*s,6*s);ctx.closePath();ctx.fill();
+
+  // 발
+  ctx.strokeStyle='#f8a020';ctx.lineWidth=2*s;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(0,14*s);ctx.lineTo(-8*s,22*s);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(8*s,14*s);ctx.lineTo(0,22*s);ctx.stroke();
+
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+
+// ── 총 발사 효과 ──
+function drawShots(){
+  for(var i=shots.length-1;i>=0;i--){
+    var s=shots[i];
+    s.life-=0.06;
+    if(s.life<=0){shots.splice(i,1);continue;}
+    ctx.save();
+    ctx.globalAlpha=s.life;
+    // 조준선 원
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(s.x,s.y,30*(1-s.life)+5,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle='rgba(255,200,0,0.8)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(s.x,s.y,8,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// ── 파티클 ──
+function addParticles(x,y,color,n){
+  for(var i=0;i<(n||12);i++){
+    var a=Math.random()*Math.PI*2;
+    var sp=2+Math.random()*6;
+    particles.push({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color:color,sz:3+Math.random()*5});
+  }
+}
+function addFeathers(x,y){
+  var featherColors=['#4a7a2a','#fff','#f8a020','#c84820','#2060c8'];
+  for(var i=0;i<16;i++){
+    var a=Math.random()*Math.PI*2;
+    var sp=1+Math.random()*5;
+    particles.push({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,
+      life:1,color:featherColors[Math.floor(Math.random()*featherColors.length)],sz:6+Math.random()*8,feather:true});
+  }
+}
+
+// ── 점수 팝업 ──
+var scorePopups=[];
+function addScorePopup(x,y,txt,color){
+  scorePopups.push({x:x,y:y,txt:txt,color:color||'#ff0',life:1,vy:-1.5});
+}
+
+// ── 오디오 ──
+var sfxCtx=null;
+function getSfx(){
+  if(!sfxCtx)try{sfxCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  if(sfxCtx&&sfxCtx.state==='suspended')sfxCtx.resume();
+  return sfxCtx;
+}
+function sfxShoot(){
+  var ac=getSfx();if(!ac)return;
+  try{
+    var t=ac.currentTime;
+    // 총소리
+    var buf=ac.createBuffer(1,Math.floor(ac.sampleRate*0.12),ac.sampleRate);
+    var d=buf.getChannelData(0);
+    for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,0.5);
+    var src=ac.createBufferSource();src.buffer=buf;
+    var filt=ac.createBiquadFilter();filt.type='bandpass';filt.frequency.value=600;filt.Q.value=1;
+    var g=ac.createGain();g.gain.setValueAtTime(0.4,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.12);
+    src.connect(filt);filt.connect(g);g.connect(ac.destination);
+    src.start(t);src.stop(t+0.13);
+  }catch(e){}
+}
+function sfxHit(){
+  var ac=getSfx();if(!ac)return;
+  try{
+    var t=ac.currentTime;
+    [440,554,659].forEach(function(f,i){
+      var o=ac.createOscillator(),g=ac.createGain();
+      o.connect(g);g.connect(ac.destination);
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0.15,t+i*0.04);
+      g.gain.exponentialRampToValueAtTime(0.001,t+i*0.04+0.2);
+      o.start(t+i*0.04);o.stop(t+i*0.04+0.22);
+    });
+  }catch(e){}
+}
+function sfxMiss(){
+  var ac=getSfx();if(!ac)return;
+  try{
+    var t=ac.currentTime;
+    var o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.type='sawtooth';o.frequency.setValueAtTime(300,t);o.frequency.exponentialRampToValueAtTime(80,t+0.4);
+    g.gain.setValueAtTime(0.15,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+    o.start(t);o.stop(t+0.42);
+  }catch(e){}
+}
+function sfxCombo(c){
+  var ac=getSfx();if(!ac)return;
+  try{
+    var t=ac.currentTime;
+    var freqs=[523,659,784,1047];
+    var n=Math.min(c-2,3);
+    for(var i=0;i<=n;i++){
+      var o=ac.createOscillator(),g=ac.createGain();
+      o.connect(g);g.connect(ac.destination);
+      o.type='sine';o.frequency.value=freqs[i];
+      g.gain.setValueAtTime(0.18,t+i*0.06);
+      g.gain.exponentialRampToValueAtTime(0.001,t+i*0.06+0.25);
+      o.start(t+i*0.06);o.stop(t+i*0.06+0.27);
+    }
+  }catch(e){}
+}
+function sfxWaveClear(){
+  var ac=getSfx();if(!ac)return;
+  try{
+    var t=ac.currentTime;
+    [523,659,784,1047,1319].forEach(function(f,i){
+      var o=ac.createOscillator(),g=ac.createGain();
+      o.connect(g);g.connect(ac.destination);
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0.18,t+i*0.09);
+      g.gain.exponentialRampToValueAtTime(0.001,t+i*0.09+0.28);
+      o.start(t+i*0.09);o.stop(t+i*0.09+0.3);
+    });
+  }catch(e){}
+}
+function sfxDogLaugh(){
+  var ac=getSfx();if(!ac)return;
+  try{
+    var t=ac.currentTime;
+    [200,250,200,250].forEach(function(f,i){
+      var o=ac.createOscillator(),g=ac.createGain();
+      o.connect(g);g.connect(ac.destination);
+      o.type='triangle';o.frequency.value=f;
+      g.gain.setValueAtTime(0.12,t+i*0.1);
+      g.gain.exponentialRampToValueAtTime(0.001,t+i*0.1+0.08);
+      o.start(t+i*0.1);o.stop(t+i*0.1+0.1);
+    });
+  }catch(e){}
+}
+
+// ── 강아지 메시지 ──
+var dogMsgs=[
+  '그것도 못 잡냐? 🤣',
+  '오리한테 졌네 ㅋㅋㅋ',
+  '손이 그렇게 느려서야...',
+  '오리가 비웃고 갔어요 😂',
+  '반사신경이 없구만 ㅎㅎ',
+  '나도 잡겠다 저거 ㅋㅋ',
+  '눈 뜨고 있는 거 맞죠?',
+  '오리 > 당신 확정 🦆',
+  '한 마리도 못 잡다니...',
+  '저 오리 지금 춤추고 가요 😆',
+  '좀 더 빨리 눌러봐요~ ㅋ',
+  '으이구 답답해라 🤦',
+];
+// 현재 말풍선 메시지
+var currentDogMsg='';
+
+function showDogMsg(){
+  dogLaughing=true;
+  currentDogMsg=dogMsgs[Math.floor(Math.random()*dogMsgs.length)];
+  // HTML 말풍선은 숨김 (Canvas로 그림)
+  document.getElementById('dog-msg').style.opacity='0';
+  sfxDogLaugh();
+  dogTimer=150;
+}
+
+// Canvas에 말풍선 그리기
+function drawDogSpeech(){
+  if(!dogLaughing || !currentDogMsg || dogTimer<=0) return;
+
+  var alpha=Math.min(1, dogTimer/20); // 사라질 때 페이드아웃
+  var dogX=W*0.5+30; // 강아지 머리 위치 (drawDog에서 머리가 오른쪽)
+  var dogY=H*0.72-50; // 강아지 머리 위
+
+  ctx.save();
+  ctx.globalAlpha=alpha;
+
+  // 텍스트 크기 측정
+  ctx.font='bold 14px -apple-system,Arial,sans-serif';
+  var tw=ctx.measureText(currentDogMsg).width;
+  var bw=tw+24, bh=36;
+  var bx=dogX-bw/2, by=dogY-bh-14;
+
+  // 화면 밖 안 나가게
+  bx=Math.max(8, Math.min(W-bw-8, bx));
+  by=Math.max(60, by);
+
+  // 말풍선 배경
+  ctx.fillStyle='#fff';
+  ctx.shadowColor='rgba(0,0,0,0.3)';
+  ctx.shadowBlur=10;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 12);
+  ctx.fill();
+  ctx.shadowBlur=0;
+
+  // 말풍선 꼬리 (강아지 입 방향으로)
+  ctx.fillStyle='#fff';
+  ctx.beginPath();
+  ctx.moveTo(dogX-6, by+bh);
+  ctx.lineTo(dogX+6, by+bh);
+  ctx.lineTo(dogX, by+bh+12);
+  ctx.closePath();
+  ctx.fill();
+
+  // 테두리
+  ctx.strokeStyle='rgba(0,0,0,0.1)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 12);
+  ctx.stroke();
+
+  // 텍스트
+  ctx.fillStyle='#222';
+  ctx.font='bold 14px -apple-system,Arial,sans-serif';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText(currentDogMsg, bx+bw/2, by+bh/2);
+
+  ctx.restore();
+}
+function hideDogMsg(){
+  dogLaughing=false;
+  currentDogMsg='';
+  document.getElementById('dog-msg').style.opacity='0';
+}
+
+// ── 콤보 표시 ──
+var comboDispTimer=null;
+function showCombo(c){
+  if(c<2)return;
+  var el=document.getElementById('combo-disp');
+  el.textContent=c+'콤보! x'+Math.min(c,5);
+  el.style.opacity='1';
+  el.style.fontSize=Math.min(24+c*4,52)+'px';
+  clearTimeout(comboDispTimer);
+  comboDispTimer=setTimeout(function(){el.style.opacity='0';},800);
+  sfxCombo(c);
+}
+
+// ── 오리 배치 ──
+var duckSpawnTimer=0, duckSpawnInterval=80;
+var waveDucksLeft=0, waveClearing=false, waveClearTimer=0;
+
+function startWave(){
+  waveClearing=false;
+  waveDucksLeft=BASE_DUCKS+Math.floor(wave*1.5);
+  duckSpawnInterval=Math.max(30,80-wave*8);
+  duckSpawnTimer=0;
+  timeLeft=WAVE_TIME+wave*2;
+  document.getElementById('wave-val').textContent=wave;
+}
+
+// ── 메인 루프 ──
+var frame=0;
+function loop(ts){
+  rafId=requestAnimationFrame(loop);
+  frame++;
+  var dt=(ts-lastTime)/1000; if(dt>0.1)dt=0.1;
+  lastTime=ts;
+
+  ctx.clearRect(0,0,W,H);
+  drawBg();
+  drawDogSpeech(); // 강아지 말풍선 (배경 위, 오리 아래)
+
+  if(!gameActive){return;}
+
+  // 타이머
+  if(!waveClearing){
+    timeLeft-=dt;
+    var timerPct=Math.max(0,timeLeft/(WAVE_TIME+wave*2));
+    document.getElementById('timer-bar').style.width=(timerPct*100)+'%';
+    if(timeLeft<=0){
+      // 시간 초과 → 남은 오리 다 도망
+      ducks.forEach(function(d){if(d.alive)onDuckEscape(d);});
+      ducks=[];
+      if(miss>=MAX_MISS){endGame();return;}
+    }
+  }
+
+  // 강아지 타이머
+  if(dogTimer>0){dogTimer--;if(dogTimer<=0)hideDogMsg();}
+
+  // 오리 스폰
+  if(!waveClearing && waveDucksLeft>0){
+    duckSpawnTimer++;
+    if(duckSpawnTimer>=duckSpawnInterval){
+      ducks.push(makeDuck());
+      waveDucksLeft--;
+      duckSpawnTimer=0;
+    }
+  }
+
+  // 오리 업데이트
+  for(var i=ducks.length-1;i>=0;i--){
+    var d=ducks[i];
+    d.wingPhase+=0.18;
+    d.phase+=0.03;
+    d.x+=d.vx;
+    d.vy+=Math.sin(d.phase)*0.08;
+    d.vy=Math.max(-2.5,Math.min(2.5,d.vy));
+    d.y+=d.vy;
+    d.y=Math.max(H*0.05,Math.min(H*0.56,d.y));
+
+    if(d.hit){
+      d.hitTimer--;
+      d.vy+=0.8; // 낙하
+      d.y+=d.vy;
+      if(d.hitTimer<=0||d.y>H*0.65){
+        ducks.splice(i,1);continue;
+      }
+    } else {
+      // 화면 밖으로 나가면 도망
+      if(d.x<-DUCK_W*2||d.x>W+DUCK_W*2){
+        onDuckEscape(d);
+        ducks.splice(i,1);continue;
+      }
+    }
+    drawDuck(d);
+  }
+
+  // 웨이브 클리어 체크
+  if(!waveClearing && waveDucksLeft<=0 && ducks.length===0){
+    waveClearing=true;waveClearTimer=90;
+    sfxWaveClear();
+    addParticles(W/2,H*0.3,'#ff0',20,8);
+    addParticles(W/2,H*0.3,'#0f0',15,6);
+    wave++;
+  }
+  if(waveClearing){
+    waveClearTimer--;
+    // WAVE CLEAR 텍스트
+    ctx.save();
+    ctx.globalAlpha=waveClearTimer/90;
+    ctx.fillStyle='#ff0';
+    ctx.font='bold '+(36+Math.sin(frame*0.2)*4)+'px Arial';
+    ctx.textAlign='center';
+    ctx.shadowColor='#ff0';ctx.shadowBlur=20;
+    ctx.fillText('WAVE CLEAR!',W/2,H*0.35);
+    ctx.restore();
+    if(waveClearTimer<=0)startWave();
+  }
+
+  // 파티클
+  for(var pi=particles.length-1;pi>=0;pi--){
+    var p=particles[pi];
+    p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.vx*=0.97;p.life-=0.022;
+    if(p.life<=0){particles.splice(pi,1);continue;}
+    ctx.save();ctx.globalAlpha=p.life;
+    if(p.feather){
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      ctx.ellipse(p.x,p.y,p.sz*0.4,p.sz,Math.atan2(p.vy,p.vx),0,Math.PI*2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle=p.color;
+      ctx.beginPath();ctx.arc(p.x,p.y,Math.max(0,p.sz*p.life),0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // 점수 팝업
+  for(var si=scorePopups.length-1;si>=0;si--){
+    var sp=scorePopups[si];
+    sp.y+=sp.vy;sp.life-=0.025;
+    if(sp.life<=0){scorePopups.splice(si,1);continue;}
+    ctx.save();ctx.globalAlpha=sp.life;
+    ctx.fillStyle=sp.color;
+    ctx.font='bold '+(20+sp.life*10)+'px Arial';
+    ctx.textAlign='center';ctx.shadowColor=sp.color;ctx.shadowBlur=10;
+    ctx.fillText(sp.txt,sp.x,sp.y);ctx.restore();
+  }
+
+  // 발사 이펙트
+  drawShots();
+}
+
+function onDuckEscape(d){
+  if(!d.alive)return;
+  d.alive=false;
+  miss++;
+  combo=0;
+  document.getElementById('miss-val').textContent=miss+'/'+MAX_MISS;
+  showDogMsg();
+  sfxMiss();
+  if(miss>=MAX_MISS){setTimeout(endGame,500);}
+}
+
+// ── 탭/클릭 처리 ──
+function handleShot(cx,cy){
+  if(!gameActive)return;
+  getSfx();
+  sfxShoot();
+  shots.push({x:cx,y:cy,life:1});
+
+  // 오리 히트 체크
+  var hit=false;
+  for(var i=ducks.length-1;i>=0;i--){
+    var d=ducks[i];
+    if(d.hit)continue;
+    var dx=cx-d.x, dy=cy-d.y;
+    var hitSize=DUCK_W*d.size*0.7;
+    if(Math.sqrt(dx*dx+dy*dy)<hitSize){
+      // 명중!
+      d.hit=true;d.hitTimer=35;d.alive=false;
+      combo++;if(combo>maxCombo)maxCombo=combo;
+      totalHit++;
+      var mult=Math.min(combo,5);
+      var pts=d.score*mult;
+      score+=pts;
+      hideDogMsg();
+      addFeathers(d.x,d.y);
+      addParticles(d.x,d.y,'#ff0',8,4);
+      addScorePopup(d.x,d.y-20,'+'+ pts+(mult>1?' x'+mult:''), mult>1?'#ff0':'#fff');
+      showCombo(combo);
+      sfxHit();
+      document.getElementById('score-val').textContent=score;
+      hit=true;
+      break;
+    }
+  }
+  if(!hit){combo=0;}
+}
+
+function addEL(el,ev,fn,opts){if(el)el.addEventListener(ev,fn,opts||false);}
+
+addEL(canvas,'touchstart',function(e){
+  e.preventDefault();
+  var t=e.touches[0];
+  handleShot(t.clientX,t.clientY);
+},{passive:false});
+
+addEL(canvas,'mousedown',function(e){
+  handleShot(e.clientX,e.clientY);
+},false);
+
+// ── 게임 시작/종료 ──
+function startGame(){
+  getSfx();
+  score=0;wave=1;miss=0;combo=0;maxCombo=0;totalHit=0;
+  ducks=[];particles=[];shots=[];scorePopups=[];
+  document.getElementById('score-val').textContent='0';
+  document.getElementById('miss-val').textContent='0/3';
+  document.getElementById('combo-disp').style.opacity='0';
+  document.getElementById('dog-msg').style.opacity='0';
+  dogLaughing=false;
+  document.getElementById('overlay').style.display='none';
+  gameActive=true;
+  lastTime=performance.now();
+  startWave();
+}
+
+function endGame(){
+  gameActive=false;
+  var isNew=score>bestScore;
+  if(isNew){bestScore=score;localStorage.setItem('dhBest',bestScore);}
+  document.getElementById('ov-score').textContent=score;
+  document.getElementById('ov-score').style.display='block';
+  document.getElementById('ov-score-lbl').style.display='block';
+  var bestEl=document.getElementById('ov-best');
+  bestEl.textContent=isNew?'🏆 신기록!':'최고: '+bestScore+'점';
+  bestEl.style.display='block';
+  var stats=document.getElementById('ov-stats');
+  stats.style.display='flex';
+  document.getElementById('st-hit').textContent=totalHit;
+  document.getElementById('st-combo').textContent=maxCombo;
+  document.getElementById('st-wave').textContent=wave;
+  document.getElementById('play-btn').textContent='다시하기';
+  document.getElementById('play-btn').style.background='linear-gradient(135deg,#f80,#f40)';
+  document.getElementById('overlay').style.display='flex';
+}
+
+var playBtn=document.getElementById('play-btn');
+var btnTouched=false;
+addEL(playBtn,'touchstart',function(e){e.preventDefault();e.stopPropagation();},false);
+addEL(playBtn,'touchend',function(e){
+  e.preventDefault();e.stopPropagation();
+  btnTouched=true;startGame();
+  setTimeout(function(){btnTouched=false;},600);
+},false);
+addEL(playBtn,'click',function(){if(btnTouched)return;startGame();},false);
+
+// 루프 시작
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
